@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown"; // react-markdown 추가
 import styles from "./page.module.css";
 
 export default function Chat() {
@@ -181,7 +182,11 @@ export default function Chat() {
               msg.sender === "user" ? styles.userMessage : styles.botMessage
             }
           >
-            {msg.text}
+          {msg.sender === "bot" ? (
+            <ReactMarkdown>{msg.text}</ReactMarkdown> // 마크다운 적용
+          ) : (
+            msg.text
+          )}
           </div>
         ))}
         {isLoading && (
