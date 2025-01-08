@@ -6,14 +6,11 @@ from langchain_community.vectorstores import ElasticVectorSearch
 from langchain_openai import ChatOpenAI
 import getpass
 
-
-
 class RAG:
     load_dotenv()
     def retriever(question):
         # ElasticSearch 설정
         ELASTIC_HOST = os.environ.get('ELASTIC_HOST')
-        print(ELASTIC_HOST)
         ELASTIC_PORT = os.environ.get('ELASTIC_PORT')
         ELASTIC_ID = os.environ.get('ELASTIC_ID')
         ELASTIC_PASSWORD = os.environ.get('ELASTIC_PASSWORD')
@@ -42,10 +39,10 @@ class RAG:
     def augmented(question, context_chunks):
         # 검색된 청크를 하나의 컨텍스트로 합치기
         context = "\n".join([chunk["content"] for chunk in context_chunks])
-        
+
         # OpenAI 모델에 전달할 메시지 생성
         messages = [
-            ("system", "You are a helpful assistant that provides detailed answers based on the provided context."),
+            ("system", "You are a helpful assistant that provides detailed answers based on the provided context. 한국어로 답변해줘"),
             ("human", f"Context:\n{context}"),
             ("human", f"Question: {question}")
         ]
@@ -69,6 +66,6 @@ class RAG:
 
         # OpenAI LLM 호출
         ai_response = llm.invoke(messages)
-        
+
         # ai_response.content를 반환
         return ai_response.content.strip()

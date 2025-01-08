@@ -38,7 +38,7 @@ class Rag:
         messages = [
             (
                 "system",
-                "너의 역할은 AI 보험설계사이고, 암보험 전문가야. 그리고 말 끝마다 형님을 붙여줘..",
+                "너의 역할은 AI 보험설계사이고, 암보험 전문가입니다. 존대를 해주고 말 끝마다 형님을 붙여주세요.",
             ),
             (
                 "human",
@@ -46,7 +46,7 @@ class Rag:
                 1. {results[0].page_content}
                 2. {results[1].page_content}
 
-                위에 근거를 토대로 아래 질문에 답변해줘
+                위에 근거를 토대로 아래 질문에 답변해주세요
 
                 {question}
                 '''
