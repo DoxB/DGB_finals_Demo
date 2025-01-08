@@ -14,7 +14,7 @@ export default function Chat() {
 
   useEffect(() => {
     // 첫 로딩 시 인사말 추가
-    setMessages([{ sender: "bot", text: "안녕! IM케어 AI보험설계사 단디라고 해. 무슨 도움이 필요해??" }]);
+    setMessages([{ sender: "bot", text: "안녕하세요! IM케어 AI보험설계사 단디라고 해. 무슨 도움이 필요해?" }]);
   }, []);
 
   useEffect(() => {
@@ -40,23 +40,51 @@ export default function Chat() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return; // 빈 입력 방지
 
-    setMessages((prev) => [...prev, { sender: "user", text: input }]); // 사용자 메시지 추가
+    const chatUrl = process.env.NEXT_PUBLIC_CHAT_URL;
+    const dandyEnd = process.env.NEXT_PUBLIC_DANDY_END;
+    const dandyPort = process.env.NEXT_PUBLIC_DANDY_PORT;
+
+    const userMessage = input.trim();
+    setMessages((prev) => [...prev, { sender: "user", text: userMessage }]); // 사용자 메시지 추가
     setInput(""); // 입력창 초기화
     setIsLoading(true); // 로딩 상태 활성화
 
-    // 봇 응답 예제
-    setTimeout(() => {
-      const botResponse = "이건 예제 응답입니다.";
+    try {
+      // POST 요청
+      const response = await fetch(`${chatUrl}:${dandyPort}/${dandyEnd}`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question: userMessage }), // 사용자 메시지 전송
+      });
+
+      if (!response.ok) {
+        throw new Error("서버 응답 오류");
+      }
+
+      const data = await response.json(); // 서버 응답 JSON 파싱
+      const botResponse = data.answer; // 응답에서 'answer' 필드 추출
+
+      // 봇 응답 추가
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text: botResponse },
       ]);
+    } catch (error) {
+      console.error("요청 중 오류 발생:", error);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "오류가 발생했습니다. 다시 시도해주세요." },
+      ]);
+    } finally {
       setIsLoading(false); // 로딩 상태 비활성화
-    }, 2000);
+    }
   };
+
 
   const handleVoiceInput = () => {
     if (!("webkitSpeechRecognition" in window)) {
@@ -64,34 +92,62 @@ export default function Chat() {
       return;
     }
 
+    const chatUrl = process.env.NEXT_PUBLIC_CHAT_URL;
+    const dandyEnd = process.env.NEXT_PUBLIC_DANDY_END;
+    const dandyPort = process.env.NEXT_PUBLIC_DANDY_PORT;
+
     setIsVoiceListening(true); // 음성 인식 상태 활성화
+
     const recognition = new webkitSpeechRecognition();
-    recognition.lang = "ko-KR";
-    recognition.start();
+    recognition.lang = "ko-KR"; // 한국어 설정
+    recognition.start(); // 음성 인식 시작
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript; // 음성 결과 텍스트 추출
 
-      // 음성 인식 결과를 바로 메시지로 추가
+      // 음성 인식 결과를 사용자 메시지로 추가
       setMessages((prev) => [...prev, { sender: "user", text: transcript }]);
-
-      // 봇 응답 예제
       setIsLoading(true); // 로딩 상태 활성화
-      setTimeout(() => {
-        const botResponse = "이건 음성 인식 응답입니다.";
+
+      try {
+        // POST 요청
+        const response = await fetch(`${chatUrl}:${dandyPort}/${dandyEnd}`, {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question: transcript }), // 음성 메시지 전송
+        });
+
+        if (!response.ok) {
+          throw new Error("서버 응답 오류");
+        }
+
+        const data = await response.json(); // 서버 응답 JSON 파싱
+        const botResponse = data.answer; // 응답에서 'answer' 필드 추출
+
+        // 봇 응답 추가
         setMessages((prev) => [
           ...prev,
           { sender: "bot", text: botResponse },
         ]);
+      } catch (error) {
+        console.error("요청 중 오류 발생:", error);
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", text: "오류가 발생했습니다. 다시 시도해주세요." },
+        ]);
+      } finally {
         setIsLoading(false); // 로딩 상태 비활성화
-      }, 2000);
+      }
     };
 
     recognition.onend = () => {
       setIsVoiceListening(false); // 음성 인식 종료
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (error) => {
+      console.error("음성 인식 오류:", error);
       alert("음성 인식 중 오류가 발생했습니다.");
       setIsVoiceListening(false); // 음성 인식 종료
     };

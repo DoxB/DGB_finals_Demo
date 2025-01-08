@@ -42,7 +42,7 @@ def retriever(user_question):
 
     # for res in results:
     #     print(f"* {res.page_content} [{res.metadata}]")
-    
+
     return results
 
 def augmented(user_question, doc: Document):
@@ -53,16 +53,18 @@ def augmented(user_question, doc: Document):
     # 프롬프트 템플릿 정의 (검색 결과와 질문을 함께 전달)
     prompt_template = """
     The following content has been retrieved from a related document:
-    
+
     {context}
-    
+
     Based on the information above, please answer the following question:
-    
+
     {question}
-    
+
     Provide accurate and trustworthy answers like a professional insurance advisor.
     Use simple examples if needed for better understanding.
     Maintain a confident and professional tone while staying polite and approachable.
+
+    한국어로 설명해줘
     """
 
     # 프롬프트 생성
@@ -79,7 +81,7 @@ def generation(prompt):
         max_tokens=None,
         timeout=None,
         max_retries=2,
-        api_key=OPENAI_API_KEY,  
+        api_key=OPENAI_API_KEY,
     )
 
     # LLM 응답 생성
